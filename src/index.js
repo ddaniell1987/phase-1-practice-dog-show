@@ -1,27 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     disableForm();
-    api(DOGS_URL)
+    api(URL)
     .then(saveDogs)
     .then(renderDogs)
-    .catch(error => alert('API error: sorry cannot fetch dog'));
+    .catch(console.log('API error: sorry cannot fetch dog'));
 });
 
-const DOGS_URL = "http://localhost:3000/dogs";
-const dogTable = document.querySelector("#table-body");
-const dogForm = document.querySelector("#dog-form");
+const URL = 'http://localhost:3000/dogs';
+const dogTable = document.querySelector('#table-body');
+const dogForm = document.querySelector('#dog-form');
 
 let dogs = [];
 
 const patchDog = (newDog) => {
     const options =  {
         method: 'PATCH',
-        header: {
+        headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newDog)
+        body: JSON.stringify(newDog),
     };
-    return api(dogForm.action,options)
-    .catch(err => alert('API error: cannot update the dogs'));
+    return api(dogForm.action, options)
+    .catch(console.log('API error: cannot update the dogs'));
 };
 const api =(url, options = {}) => fetch(url, options)
 .then((response) => {
@@ -42,7 +42,7 @@ const disableForm = () => {
     });
 };
 
-const handleSubmit = (event) => {
+const handleSubmit = (e) => {
     e.preventDefault();
     const dog = {
         name: dogForm.name.value,
@@ -50,7 +50,7 @@ const handleSubmit = (event) => {
         sex: dogForm.sex.value,
     };
 
-    patchDog(dog)
+    patchDog(newDog)
     .then((dog) => {
         dogForm.reset();
         delete dogForm.action;
@@ -64,37 +64,44 @@ const populateForm = (dog) => {
     dogForm.breed.value = dog.breed;
     dogForm.sex.value = dog.sex;
     dogForm.action = `${URL}/${dog.id}`;
+    enableForm();
 };
 
 const renderDog = (dog, update = false) => {
-    let dogRow;
+    let row;
     if(update) {
-        dogRow= dogTable.querySelector(`[dog-data-id = '{dog.id}']`);
-        dogRow.innerHTML = '';
+        row= dogTable.querySelector(`[dog-data-id = '{dog.id}']`);
+        row.innerHTML = '';
     } else{
-    dogRow = document.createElement('tr');
-    dogRow.dataset.dogId = dog.id;
+    row = document.createElement('tr');
+    row.dataset.dogId = dog.id;
     }
 
-    const[nameElement, breedElement, sexElement] =Array.from([1, 2, 3], x => document.createElement('td'));
-    nameElement.innerText = 'Edit dog';
-    editElement.addEventListener('click', () => {
-        populateForm(dog);
-        dogForm.addEventListener('submit', handleSubmit);
-    });
-
-    row.append(nameElement, breedElement, sexElement, editElement);
-    return row;
-}
+    const [nameElement, breedElement, sexElement] = Array.from([1, 2, 3], x => document.createElement('td'));
+    nameElement.innerText = dog.name;
+    breedElement.innerText = dog.breed;
+    sexElement.innerText = dog.sex;
+    }
+const editElement = document.createElement('button');
+editElement.innerText = 'Edit dog';
+editElement.addEventListener('click', () => {
+    populateForm(dog);
+    dogForm.addEventListener('submit', handleSubmit);
+});
+    
 //on click of the edit button, set inner Text of the form with that dog's details.
-const saveDogs = () => {
-    dogs = fetchDogs;
-    return fetchDogs;
-}
+row.append(nameElement, breedElement, sexElement, editElement);
+    return row;
+
+const saveDogs = (fetchedDogs) => {
+    dogs = fetchedDogs;
+    return fetchedDogs;
+};
+
 
 const renderDogs = () => {
-    dogTable.innderHTML = '';
+    dogTable.innerHTML = '';
     dogs.forEach((dog) => {
-        dogTable.appendChild(renderDog(dog));
+        dogTable.append(renderDog(dog));
     });
 };
